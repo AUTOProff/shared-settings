@@ -5,3 +5,5 @@ prepare:
       path: "sample.pdf"
     - url: "https://www.cmu.edu/blackboard/files/evaluate/tests-example.xls"
       path: "sample.xls"
+    - url: "https://raw.githubusercontent.com/AUTOProff/shared-settings/master/codeclimate.setttings.yml"
+      path: ".codeclimate.yml"
