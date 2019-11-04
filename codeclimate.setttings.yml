@@ -1,5 +1,4 @@
 version: "2"
-plugins:
 checks:
   argument-count:
     enabled: false
