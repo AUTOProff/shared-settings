@@ -22,7 +22,7 @@
     <rule ref="rulesets/codesize.xml/TooManyFields"/>
     <rule ref="rulesets/codesize.xml/TooManyMethods">
         <properties>
-            <property name="maxmethods" value="30"/>
+            <property name="maxmethods" value="1"/>
         </properties>
     </rule>
     <rule ref="rulesets/codesize.xml/ExcessiveClassComplexity"/>
