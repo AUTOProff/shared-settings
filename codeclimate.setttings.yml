@@ -11,7 +11,8 @@ checks:
   method-count:
     enabled: false
   method-lines:
-    enabled: false
+    config:
+      threshold: 105
   nested-control-flow:
     enabled: false
   return-statements:
@@ -20,7 +21,7 @@ checks:
     enabled: false
   identical-code:
     enabled: false
-  
+
   phpmd:
     enabled: true
     config:
