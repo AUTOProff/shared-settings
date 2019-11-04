@@ -30,5 +30,5 @@ checks:
   phpcodesniffer:
     enabled: true
     config:
-      standard: "codesize.xml"
+      standard: "phpcs.xml"
       file_extensions: "php"
