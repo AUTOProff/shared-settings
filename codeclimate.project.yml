@@ -1,0 +1,7 @@
+version: "2"
+prepare:
+  fetch:
+    - url: "http://www.africau.edu/images/default/sample.pdf"
+      path: "sample.pdf"
+    - url: "https://www.cmu.edu/blackboard/files/evaluate/tests-example.xls"
+      path: "sample.xls"
