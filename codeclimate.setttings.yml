@@ -31,9 +31,9 @@ plugins:
     enabled: true
     config:
       file_extensions: "php"
-      rulesets: "codesize.xml"
+      rulesets: "./codesize.xml"
   phpcodesniffer:
     enabled: true
     config:
-      standard: "phpcs.xml"
+      standard: "./phpcs.xml"
       file_extensions: "php"
