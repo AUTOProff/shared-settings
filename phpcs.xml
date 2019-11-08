@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<ruleset name="Laravel Standards">
+<ruleset name="AUTOproff CodeSniffer Standards">
 
     <description>Team Rocket Coding Standard</description>
 
