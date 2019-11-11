@@ -42,6 +42,4 @@
     <rule ref="rulesets/unusedcode.xml"/>
     <rule ref="rulesets/cleancode.xml/BooleanArgumentFlag"/>
     <rule ref="rulesets/cleancode.xml/ElseExpression"/>
-    <rule ref="rulesets/cleancode.xml/DuplicatedArrayKey"/>
-    <rule ref="rulesets/cleancode.xml/MissingImport"/>
 </ruleset>
