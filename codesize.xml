@@ -7,7 +7,9 @@
     <description>Team Rocket Coding Standard</description>
     <rule ref="rulesets/codesize.xml/CyclomaticComplexity"/>
     <rule ref="rulesets/codesize.xml/NPathComplexity"/>
-    <rule ref="rulesets/codesize.xml/ExcessiveMethodLength"/>
+    <rule ref="rulesets/codesize.xml/ExcessiveMethodLength">
+        <exclude-pattern>/database/*</exclude-pattern>
+    </rule>
     <rule ref="rulesets/codesize.xml/ExcessiveClassLength"/>
     <rule ref="rulesets/codesize.xml/ExcessiveParameterList"/>
     <rule ref="rulesets/codesize.xml/ExcessivePublicCount"/>
@@ -35,8 +37,13 @@
         <properties>
             <property name="maximum" value="25"/>
         </properties>
+        <exclude-pattern>/database/*</exclude-pattern>
     </rule>
-    <rule ref="rulesets/naming.xml/ShortMethodName"/>
+    <rule ref="rulesets/naming.xml/ShortMethodName">
+        <properties>
+            <property name="exceptions" value="up"/>
+        </properties>
+    </rule>
     <rule ref="rulesets/naming.xml/ConstructorWithNameAsEnclosingClass"/>
     <rule ref="rulesets/naming.xml/ConstantNamingConventions"/>
     <rule ref="rulesets/unusedcode.xml"/>
