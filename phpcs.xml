@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
-<ruleset name="AUTOproff CodeSniffer Standards">
+<ruleset name="Team Rocket Coding Standard">
 
-    <description>Team Rocket Coding Standard</description>
+    <description>AUTOproff CodeSniffer Standards</description>
 
     <rule ref="PSR2"/>
 
