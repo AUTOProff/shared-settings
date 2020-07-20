@@ -1,0 +1,9 @@
+- hosts: "{{ hostgroup }}"
+  tasks:
+    - name: "Ensure vpn users exists"
+      no_log: true
+      become: true
+      lineinfile:
+        path: "/etc/strongswan/ipsec.secrets"
+        line: "{{ item.email }} : EAP \"{{ item.password }}\""
+      loop: "{{ users }}" 
