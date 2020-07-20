@@ -1,0 +1,14 @@
+- hosts: "localhost"
+  vars:
+    ansible_python_interpreter: "/usr/local/bin/python3"
+  tasks:
+    - name: "Ensure mysql users exists"
+      mysql_user:
+        host: "%"
+        name: "{{ item.name }}"
+        password: "{{ item.pwd }}"
+        priv: "{{ item.grant }}"
+        login_host: "{{ login_host }}" 
+        login_user: "{{ login_user }}"
+        login_password: "{{ login_password }}"
+      loop: "{{ users }}"
