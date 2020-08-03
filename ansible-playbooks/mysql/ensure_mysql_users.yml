@@ -3,6 +3,7 @@
     ansible_python_interpreter: "/usr/local/bin/python3"
   tasks:
     - name: "Ensure mysql users exists"
+      no_log: true
       mysql_user:
         host: "%"
         name: "{{ item.name }}"
