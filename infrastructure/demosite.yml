@@ -1,0 +1,558 @@
+---
+Description:
+  Creates a autoproff cluster with some services
+
+Parameters:
+  ClusterName:
+    Type: String
+    Description: Input clustername
+    AllowedValues: ['Autoproff']
+
+  Environment:
+    Type: String
+    Description: Input environment
+    AllowedValues: ['demo']
+Resources:
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Join [ "-", [!Ref ClusterName, !Ref Environment]]
+
+  AutoproffAdmin:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Join ['-', ['autoproff2', !Ref Environment]]
+      Cluster: !GetAtt Cluster.Arn
+      DesiredCount: 1
+      LaunchType: FARGATE
+      LoadBalancers:
+        - TargetGroupArn: !Ref AutoproffAdminTargetGroup
+          ContainerName: !Join ["-", ["autoproff2", !Ref Environment]]
+          ContainerPort: 80
+      TaskDefinition: !Ref AutoproffAdminTaskDefinition
+      NetworkConfiguration:
+        AwsVpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups: ["sg-0956d3caf56b71375"]
+          Subnets: ["subnet-0dab3f2c975195d4c"]
+
+  AutoproffAuctions:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Join ['-', ['autoproff3', !Ref Environment]]
+      Cluster: !GetAtt Cluster.Arn
+      DesiredCount: 1
+      LaunchType: FARGATE
+      LoadBalancers:
+        - TargetGroupArn: !Ref AutoproffAuctionsTargetGroup
+          ContainerName: !Join ["-", ["autoproff3", !Ref Environment]]
+          ContainerPort: 80
+      TaskDefinition: !Ref AutoproffAuctionsTaskDefinition
+      NetworkConfiguration:
+        AwsVpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups: ["sg-0956d3caf56b71375"]
+          Subnets: ["subnet-0dab3f2c975195d4c"]
+
+  AutoproffApi:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Join ['-', ['autoproffApi', !Ref Environment]]
+      Cluster: !GetAtt Cluster.Arn
+      DesiredCount: 1
+      LaunchType: FARGATE
+      LoadBalancers:
+        - TargetGroupArn: !Ref AutoproffApiTargetGroup
+          ContainerName: !Join ["-", ["autoproffApi", !Ref Environment]]
+          ContainerPort: 80
+      TaskDefinition: !Ref AutoproffApiTaskDefinition
+      NetworkConfiguration:
+        AwsVpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups: ["sg-0956d3caf56b71375"]
+          Subnets: ["subnet-0dab3f2c975195d4c"]
+
+  AutoproffAuctionsTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions:
+        - LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Join ["/", ["ecs", !Join ["-", [!Ref ClusterName, !Ref Environment]], "auctions"]]
+              awslogs-region: eu-central-1
+              awslogs-stream-prefix: ecs
+              awslogs-create-group: true
+          PortMappings:
+            - HostPort: 80
+              Protocol: tcp
+              ContainerPort: 80
+          Environment: 
+            - Name: AWS_REGION
+              Value: eu-central-1
+        
+            - Name: MAIL_DRIVER
+              Value: smtp
+        
+            - Name: APP_DEBUG
+              Value: true
+        
+            - Name: APP_ENV
+              Value: staging
+        
+            - Name: APP_LOG_LEVEL
+              Value: info
+        
+            - Name: APP_NAME
+              Value: AUTOproff3 Staging
+        
+            - Name: APP_URL
+              Value: !Join ["", ["https://autoproffAuctions-", !Ref Environment, ".auctiongroup-dev.dk"]]
+        
+            - Name: API_BASE_URL
+              Value: !Join ["", ["https://autoproffAdmin-", !Ref Environment, ".auctiongroup-dev.dk/"]]
+        
+            - Name: JS_API_BASE_URL
+              Value: !Join ["", ["https://autoproffAdmin-", !Ref Environment, ".auctiongroup-dev.dk/"]]
+        
+            - Name: NEW_API_BASE_URL
+              Value: !Join ["", ["https://autoproffApi-", !Ref Environment, ".auctiongroup-dev.dk/"]]
+        
+            - Name: LOG_CHANNEL
+              Value: stack
+        
+            - Name: EBAY_REDIRECT_URL
+              Value: https://ap3.autoproff-local.dk/settings/company
+        
+            - Name: CAR_API_AUTH_URL
+              Value: https://qa01-www.bilinfo.net/oauth/connect/token
+        
+            - Name: EBAY_CONNECT_URL
+              Value: https://qa01-www.bilinfo.net/oauth/connect/authorize
+        
+          Secrets:
+            - Name: APP_KEY
+              ValueFrom: /autoproff3/staging/APP_KEY
+        
+            - Name: FIREBASE_API_KEY
+              ValueFrom: /autoproff/staging/FIREBASE_API_KEY
+        
+            - Name: FIREBASE_AUTH_DOMAIN
+              ValueFrom: /autoproff/staging/FIREBASE_AUTH_DOMAIN
+        
+            - Name: FIREBASE_CLIENT_EMAIL
+              ValueFrom: /autoproff/staging/FIREBASE_CLIENT_EMAIL
+        
+            - Name: FIREBASE_CLIENT_ID
+              ValueFrom: /autoproff/staging/FIREBASE_CLIENT_ID
+        
+            - Name: FIREBASE_DATABASE_URL
+              ValueFrom: /autoproff/staging/FIREBASE_DATABASE_URL
+        
+            - Name: FIREBASE_MESSAGING_SENDER_ID
+              ValueFrom: /autoproff/staging/FIREBASE_MESSAGING_SENDER_ID
+        
+            - Name: FIREBASE_PRIVATE_KEY
+              ValueFrom: /autoproff/staging/FIREBASE_PRIVATE_KEY
+        
+            - Name: FIREBASE_PROJECT_ID
+              ValueFrom: /autoproff/staging/FIREBASE_PROJECT_ID
+        
+            - Name: FIREBASE_STORAGE_BUCKET
+              ValueFrom: /autoproff/staging/FIREBASE_STORAGE_BUCKET
+        
+            - Name: REDIS_HOST
+              ValueFrom: /autoproff/staging/REDIS_HOST
+        
+            - ValueFrom: /autoproff/staging/MAIL_HOST
+              Name: MAIL_HOST
+        
+            - ValueFrom: /autoproff/staging/MAIL_PORT
+              Name: MAIL_PORT
+        
+            - ValueFrom: /autoproff/staging/MAIL_USERNAME
+              Name: MAIL_USERNAME
+        
+            - ValueFrom: /autoproff/staging/MAIL_PASSWORD
+              Name: MAIL_PASSWORD
+        
+            - Name: DB_HOST
+              ValueFrom: /autoproff/staging/DB_HOST
+        
+            - Name: DB_HOST_READER
+              ValueFrom: /autoproff/staging/DB_HOST_READER
+        
+            - Name: DB_PASSWORD
+              ValueFrom: /autoproff/staging/DB_PASSWORD
+        
+            - Name: DB_USERNAME
+              ValueFrom: /autoproff/staging/DB_USERNAME
+        
+            - Name: DB_DATABASE
+              ValueFrom: /autoproff/staging/DB_DATABASE
+        
+            - Name: AWS_SECRET_KEY
+              ValueFrom: /autoproff/common/AWS_SECRET_ACCESS_KEY
+        
+            - Name: AWS_KEY_ID
+              ValueFrom: /autoproff/common/AWS_ACCESS_KEY_ID
+        
+            - Name: CAR_API_CLIENT_ID
+              ValueFrom: /autoproff/staging/CAR_API_CLIENT_ID
+        
+            - Name: CAR_API_CLIENT_SECRET
+              ValueFrom: /autoproff/staging/CAR_API_CLIENT_SECRET
+
+          Image: !Join ["", ["236967157394.dkr.ecr.eu-central-1.amazonaws.com/autoproff3/", !Ref Environment, ":latest"]]
+          Essential: true
+          Name: !Join ["-", ["autoproff3", !Ref Environment]]
+      Cpu: 512
+      ExecutionRoleArn: arn:aws:iam::236967157394:role/ecsTaskExecutionRole
+      Family: !Join ["-", ["autoproff3", !Ref Environment]]
+      Memory: 1024
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - "FARGATE"
+      TaskRoleArn: arn:aws:iam::236967157394:role/ecsTaskExecutionRole
+
+  AutoproffApiTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions:
+        - LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Join ["/", ["ecs", !Join ["-", [!Ref ClusterName, !Ref Environment]], "api"]]
+              awslogs-region: eu-central-1
+              awslogs-stream-prefix: ecs
+              awslogs-create-group: true
+          PortMappings:
+            - HostPort: 80
+              Protocol: tcp
+              ContainerPort: 80
+          Environment:
+            - Name: APP_NAME
+              Value: AUTOproff API Demo
+            - Name: APP_ENV
+              Value: staging
+            - Name: APP_DEBUG
+              Value: true
+            - Name: APP_URL
+              Value: !Join ["", ["https://autoproffapi-", !Ref Environment, ".auctiongroup-dev.dk"]]
+            - Name: SLOW_QUERY_DEBUG_CHANNEL
+              Value: stack
+            - Name: SLOW_QUERY_DEBUG_LEVEL
+              Value: info
+            - Name: SLOW_QUERY_ENABLED
+              Value: true
+            - Name: MAIL_DRIVER
+              Value: smtp
+            - Name: LOG_CHANNEL
+              Value: stack
+            - Name: AWS_DEFAULT_REGION
+              Value: eu-central-1
+            - Name: AWS_PRODUCT_S3_URL
+              Value: https://s3.eu-west-2.amazonaws.com/auction-product-images
+            - Name: AWS_PRODUCT_IMAGES_BUCKET
+              Value: auction-product-images
+            - Name: CAR_API_AUTH_URL
+              Value: https://qa01-www.bilinfo.net/oauth/connect/token
+            - Name: CAR_API_BASE_URL
+              Value: https://publicapi.bilinfo.net/carapiqa/api
+            - Name: CAR_API_LINK_URL
+              Value: https://qa01-www.bilinfo.net/oauth/connect/authorize
+            - Name: MODEL_CATALOG_AUTH_URL
+              Value: https://qa01-accounts.ecgh.dk/oauth/connect/token
+            - Name: MODEL_CATALOG_BASE_URL
+              Value: https://publicapi.bilinfo.net/modelcatalogqa/api
+            - Name: EBAY_REDIRECT_URL
+              Value: https://ap3.autoproff-local.dk/settings/company
+            - Name: REMOVE_BG_ENDPOINT
+              Value: https://api.remove.bg/v1.0/removebg
+          Secrets:
+            - ValueFrom: /autoproff/common/DAT/customer_login
+              Name: DAT_CUSTOMER_LOGIN
+            - ValueFrom: /autoproff/common/DAT/customer_number
+              Name: DAT_CUSTOMER_NUMBER
+            - ValueFrom: /autoproff/common/DAT/customer_password
+              Name: DAT_CUSTOMER_PASSWORD
+            - ValueFrom: /autoproff/common/DAT/partner_number
+              Name: DAT_INTERFACE_PARTNER_NUMBER
+            - ValueFrom: /autoproff/common/DAT/partner_signature
+              Name: DAT_INTERFACE_PARTNER_SIGNATURE
+            - ValueFrom: /autoproff/staging/MAIL_HOST
+              Name: MAIL_HOST
+            - ValueFrom: /autoproff/staging/MAIL_PORT
+              Name: MAIL_PORT
+            - ValueFrom: /autoproff/staging/MAIL_USERNAME
+              Name: MAIL_USERNAME
+            - ValueFrom: /autoproff/staging/MAIL_PASSWORD
+              Name: MAIL_PASSWORD
+            - Name: DB_DATABASE
+              ValueFrom: /autoproff/staging/DB_DATABASE
+            - Name: DB_HOST
+              ValueFrom: /autoproff/staging/DB_HOST
+            - Name: DB_HOST_READER
+              ValueFrom: /autoproff/staging/DB_HOST_READER
+            - Name: DB_PASSWORD
+              ValueFrom: /autoproff/staging/DB_PASSWORD
+            - Name: DB_USERNAME
+              ValueFrom: /autoproff/staging/DB_USERNAME
+            - Name: DB_SANDBOX_PASSWORD
+              ValueFrom: /autoproff/staging/DB_PASSWORD
+            - Name: DB_SANDBOX_USERNAME
+              ValueFrom: /autoproff/staging/DB_USERNAME
+            - Name: DB_SANDBOX_HOST
+              ValueFrom: /autoproff/staging/DB_HOST
+            - Name: DB_SANDBOX_DATABASE
+              ValueFrom: /autoproff-api/staging/DB_SANDBOX_DATABASE
+            - Name: JWT_SECRET
+              ValueFrom: /autoproff-api/staging/JWT_SECRET
+            - Name: REDIS_HOST
+              ValueFrom: /autoproff/staging/REDIS_HOST
+            - Name: AWS_ACCESS_KEY_ID
+              ValueFrom: /autoproff/common/AWS_ACCESS_KEY_ID
+            - Name: AWS_SECRET_ACCESS_KEY
+              ValueFrom: /autoproff/common/AWS_SECRET_ACCESS_KEY
+            - Name: AWS_ACCOUNT_ID
+              ValueFrom: /autoproff/common/AWS_ACCOUNT_ID
+            - Name: SQS_QUEUE
+              ValueFrom: /autoproff-api/staging/SQS_QUEUE
+            - Name: AWS_TAX_CALC_BUCKET
+              ValueFrom: /autoproff-api/staging/AWS_TAX_CALC_BUCKET
+            - Name: AWS_TAX_CALC_S3_URL
+              ValueFrom: /autoproff-api/common/AWS_TAX_CALC_S3_URL
+            - Name: SPLIT_LEASING_KEY
+              ValueFrom: /autoproff-api/common/SPLIT_LEASING_KEY
+            - Name: EMAILPLATFORM_USERNAME
+              ValueFrom: /autoproff-api/common/EMAILPLATFORM_USERNAME
+            - Name: EMAILPLATFORM_TOKEN
+              ValueFrom: /autoproff-api/common/EMAILPLATFORM_TOKEN
+            - Name: CAR_API_CLIENT_ID
+              ValueFrom: /autoproff-api/staging/CAR_API_CLIENT_ID
+            - Name: CAR_API_CLIENT_SECRET
+              ValueFrom: /autoproff-api/staging/CAR_API_CLIENT_SECRET
+            - Name: MODEL_CATALOG_CLIENT_ID
+              ValueFrom: /autoproff-api/staging/MODEL_CATALOG_CLIENT_ID
+            - Name: MODEL_CATALOG_CLIENT_SECRET
+              ValueFrom: /autoproff-api/staging/MODEL_CATALOG_CLIENT_SECRET
+            - Name: REMOVE_BG_API_KEY
+              ValueFrom: /autoproff-api/common/REMOVE_BG_API_KEY
+            - Name: CAR_API_AZURE_KEY
+              ValueFrom: /autoproff-api/staging/CAR_API_AZURE_KEY
+            - Name: MODEL_CATALOG_AZURE_KEY
+              ValueFrom: /autoproff-api/staging/MODEL_CATALOG_AZURE_KEY
+          Image: !Join ["", ["236967157394.dkr.ecr.eu-central-1.amazonaws.com/autoproff-api/", !Ref Environment, ":latest"]]
+          Essential: true
+          Name: !Join ["-", ["autoproffApi", !Ref Environment]]
+      Cpu: 512
+      ExecutionRoleArn: arn:aws:iam::236967157394:role/ecsTaskExecutionRole
+      Family: !Join ["-", ["autoproffApi", !Ref Environment]]
+      Memory: 1024
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - "FARGATE"
+      TaskRoleArn: arn:aws:iam::236967157394:role/ecsTaskExecutionRole
+
+  AutoproffAdminTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions:
+        - LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Join ["/", ["ecs", !Join ["-", [!Ref ClusterName, !Ref Environment]], "admin"]]
+              awslogs-region: eu-central-1
+              awslogs-stream-prefix: ecs
+              awslogs-create-group: true
+          PortMappings:
+            - HostPort: 80
+              Protocol: tcp
+              ContainerPort: 80
+          Environment:
+            - Name: ENVIRONMENT
+              Value: staging
+            - Name: MAIL_DRIVER
+              Value: smtp
+            - Name: DOMAIN_FRONTEND
+              Value: !Join ["", ["autoproffAuctions-", !Ref Environment, ".auctiongroup-dev.dk"]]
+            - Name: DOMAIN_API
+              Value: !Join ["", ["autoproffAdmin-", !Ref Environment, ".auctiongroup-dev.dk"]]
+            - Name: DOMAIN_ADMIN
+              Value: !Join ["", ["autoproffAdmin-", !Ref Environment, ".auctiongroup-dev.dk"]]
+            - Name: URL_FRONTEND_SWITCH
+              Value: https://switched.auctiongroup-dev.dk
+          Secrets:
+            - ValueFrom: /autoproff2/common/AUTOPROFF_API_USERNAME
+              Name: AUTOPROFF_API_USERNAME
+            - ValueFrom: /autoproff2/common/AUTOPROFF_API_PASSWORD
+              Name: AUTOPROFF_API_PASSWORD
+            - ValueFrom: /autoproff2/common/SENTRY_DSN
+              Name: SENTRY_DSN
+            - ValueFrom: /autoproff/staging/MAIL_HOST
+              Name: MAIL_HOST
+            - ValueFrom: /autoproff/staging/MAIL_PORT
+              Name: MAIL_PORT
+            - ValueFrom: /autoproff/staging/MAIL_USERNAME
+              Name: MAIL_USERNAME
+            - ValueFrom: /autoproff/staging/MAIL_PASSWORD
+              Name: MAIL_PASSWORD
+            - ValueFrom: /autoproff/staging/DB_DATABASE
+              Name: DB_DATABASE
+            - ValueFrom: /autoproff/staging/DB_HOST
+              Name: DB_HOST_WRITER
+            - ValueFrom: /autoproff/staging/DB_HOST_READER
+              Name: DB_HOST_READER
+            - ValueFrom: /autoproff/staging/DB_PASSWORD
+              Name: DB_PASSWORD
+            - ValueFrom: /autoproff/staging/DB_USERNAME
+              Name: DB_USERNAME
+            - ValueFrom: /autoproff/staging/REDIS_HOST
+              Name: REDIS_HOST
+            - ValueFrom: /autoproff/staging/FIREBASE_API_KEY
+              Name: FIREBASE_API_KEY
+            - ValueFrom: /autoproff/staging/FIREBASE_AUTH_DOMAIN
+              Name: FIREBASE_AUTH_DOMAIN
+            - ValueFrom: /autoproff/staging/FIREBASE_DATABASE_URL
+              Name: FIREBASE_DATABASE_URL
+            - ValueFrom: /autoproff/staging/FIREBASE_MESSAGING_SENDER_ID
+              Name: FIREBASE_MESSAGING_SENDER_ID
+            - ValueFrom: /autoproff/staging/FIREBASE_STORAGE_BUCKET
+              Name: FIREBASE_STORAGE_BUCKET
+            - ValueFrom: /autoproff/common/AWS_SECRET_ACCESS_KEY
+              Name: AWS_SECRET_ACCESS_KEY
+            - ValueFrom: /autoproff/common/AWS_ACCESS_KEY_ID
+              Name: AWS_ACCESS_KEY_ID
+            - ValueFrom: /common/staging/PAYPROFF_API_URL
+              Name: PAYPROFF_API_URL
+          Image: !Join ["", ["236967157394.dkr.ecr.eu-central-1.amazonaws.com/autoproff2/", !Ref Environment, ":latest"]]
+          Essential: true
+          Name: !Join ["-",["autoproff2", !Ref Environment]]
+      Cpu: 512
+      ExecutionRoleArn: arn:aws:iam::236967157394:role/ecsTaskExecutionRole
+      Family: !Join ["-" ,["autoproff2", !Ref Environment]]
+      Memory: 1024
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - "FARGATE"
+      TaskRoleArn: arn:aws:iam::236967157394:role/ecsTaskExecutionRole
+
+  AutoproffAdminTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckPort: traffic-port
+      HealthCheckEnabled: true
+      HealthCheckIntervalSeconds: 30
+      HealthCheckPath: /api-v1/time
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 2
+      HealthyThresholdCount: 2
+      Matcher:
+        HttpCode: 200
+      Name: !Join ["-", ["AutoproffAdmin", !Ref Environment]]
+      Port: 80
+      Protocol: HTTP
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: 120
+        - Key: stickiness.enabled
+          Value: false
+        - Key: load_balancing.algorithm.type
+          Value: round_robin
+        - Key: slow_start.duration_seconds
+          Value: 0
+      TargetType: ip
+      UnhealthyThresholdCount: 2
+      VpcId: vpc-268a454e
+
+  AutoproffAuctionsTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckPort: traffic-port
+      HealthCheckEnabled: true
+      HealthCheckIntervalSeconds: 30
+      HealthCheckPath: /health-check
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 2
+      HealthyThresholdCount: 2
+      Matcher:
+        HttpCode: 200
+      Name: !Join ["-", ["AutoproffAuctions", !Ref Environment]]
+      Port: 80
+      Protocol: HTTP
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: 120
+        - Key: stickiness.enabled
+          Value: false
+        - Key: load_balancing.algorithm.type
+          Value: round_robin
+        - Key: slow_start.duration_seconds
+          Value: 0
+      TargetType: ip
+      UnhealthyThresholdCount: 2
+      VpcId: vpc-268a454e
+
+  AutoproffApiTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckPort: traffic-port
+      HealthCheckEnabled: true
+      HealthCheckIntervalSeconds: 30
+      HealthCheckPath: /health-check
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 2
+      HealthyThresholdCount: 2
+      Matcher:
+        HttpCode: 200
+      Name: !Join ["-", ["AutoproffApi", !Ref Environment]]
+      Port: 80
+      Protocol: HTTP
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: 120
+        - Key: stickiness.enabled
+          Value: false
+        - Key: load_balancing.algorithm.type
+          Value: round_robin
+        - Key: slow_start.duration_seconds
+          Value: 0
+      TargetType: ip
+      UnhealthyThresholdCount: 2
+      VpcId: vpc-268a454e
+
+  AutoproffApiListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - Type: "forward"
+          TargetGroupArn: !Ref AutoproffApiTargetGroup
+      Conditions:
+        - Field: host-header
+          Values: [autoproffApi-demo.auctiongroup-dev.dk]
+      ListenerArn: arn:aws:elasticloadbalancing:eu-central-1:236967157394:listener/app/autoproff-v2/be3ee85e25cb8974/2d945a675033dff5
+      Priority: 4000
+
+  AutoproffAuctionsListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - Type: "forward"
+          TargetGroupArn: !Ref AutoproffAuctionsTargetGroup
+      Conditions:
+        - Field: host-header
+          Values: [autoproffAuctions-demo.auctiongroup-dev.dk]
+      ListenerArn: arn:aws:elasticloadbalancing:eu-central-1:236967157394:listener/app/autoproff-v2/be3ee85e25cb8974/2d945a675033dff5
+      Priority: 3750
+
+  AutoproffAdminListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - Type: "forward"
+          TargetGroupArn: !Ref AutoproffAdminTargetGroup
+      Conditions:
+        - Field: host-header
+          Values: [autoproffAdmin-demo.auctiongroup-dev.dk]
+      ListenerArn: arn:aws:elasticloadbalancing:eu-central-1:236967157394:listener/app/autoproff-v2/be3ee85e25cb8974/2d945a675033dff5
+      Priority: 3500
